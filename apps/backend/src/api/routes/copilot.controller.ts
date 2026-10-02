@@ -19,6 +19,7 @@ import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/s
 import { MastraAgent } from '@ag-ui/mastra';
 import { MastraService } from '@gitroom/nestjs-libraries/chat/mastra.service';
 import { Request, Response } from 'express';
+import OpenAI from 'openai';
 import { RequestContext } from '@mastra/core/di';
 import { CheckPolicies } from '@gitroom/backend/services/auth/permissions/permissions.ability';
 import { AuthorizationActions, Sections } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
@@ -28,6 +29,13 @@ export type ChannelsContext = {
   organization: string;
   ui: string;
 };
+
+const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL?.trim() || undefined;
+const OPENAI_MODEL = process.env.OPENAI_MODEL?.trim() || 'gpt-4.1';
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
+  ...(OPENAI_BASE_URL ? { baseURL: OPENAI_BASE_URL } : {}),
+});
 
 // the copilot runtime writes its own CORS headers on the response, keep them aligned with main.ts
 const copilotCors = () => ({
@@ -60,7 +68,8 @@ export class CopilotController {
       cors: copilotCors(),
       runtime: new CopilotRuntime(),
       serviceAdapter: new OpenAIAdapter({
-        model: 'gpt-4.1',
+        openai,
+        model: OPENAI_MODEL,
       }),
     });
 
@@ -106,7 +115,8 @@ export class CopilotController {
       cors: copilotCors(),
       runtime,
       serviceAdapter: new OpenAIAdapter({
-        model: 'gpt-4.1',
+        openai,
+        model: OPENAI_MODEL,
       }),
     });
 

@@ -4,8 +4,26 @@ import { shuffle } from 'lodash';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'sk-proj-';
+const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL?.trim() || undefined;
+const OPENAI_MODEL = process.env.OPENAI_MODEL?.trim() || 'gpt-4.1';
+const OPENAI_IMAGE_API_KEY =
+  process.env.OPENAI_IMAGE_API_KEY?.trim() ||
+  (!OPENAI_BASE_URL ? process.env.OPENAI_API_KEY : undefined) ||
+  'sk-proj-';
+const OPENAI_IMAGE_BASE_URL =
+  process.env.OPENAI_IMAGE_BASE_URL?.trim() || undefined;
+const OPENAI_IMAGE_MODEL =
+  process.env.OPENAI_IMAGE_MODEL?.trim() || 'chatgpt-image-latest';
+
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
+  apiKey: OPENAI_API_KEY,
+  ...(OPENAI_BASE_URL ? { baseURL: OPENAI_BASE_URL } : {}),
+});
+
+const openaiImages = new OpenAI({
+  apiKey: OPENAI_IMAGE_API_KEY,
+  ...(OPENAI_IMAGE_BASE_URL ? { baseURL: OPENAI_IMAGE_BASE_URL } : {}),
 });
 
 const PicturePrompt = z.object({
@@ -42,7 +60,7 @@ export class OpenaiService {
     const { clips } = (
       await openai.chat.completions.parse(
         {
-          model: 'gpt-4.1',
+          model: OPENAI_MODEL,
           messages: [
             {
               role: 'system',
@@ -79,9 +97,9 @@ Clips must not overlap. Write the title and the post in this language, whatever 
     // gpt-image models always return base64 (b64_json) and do not accept the
     // `response_format` parameter, unlike the deprecated dall-e-3.
     const generate = (
-      await openai.images.generate({
+      await openaiImages.images.generate({
         prompt,
-        model: 'chatgpt-image-latest',
+        model: OPENAI_IMAGE_MODEL,
         size: isVertical ? '1024x1536' : '1024x1024',
       })
     ).data[0];
@@ -93,7 +111,7 @@ Clips must not overlap. Write the title and the post in this language, whatever 
     return (
       (
         await openai.chat.completions.parse({
-          model: 'gpt-4.1',
+          model: OPENAI_MODEL,
           messages: [
             {
               role: 'system',
@@ -114,7 +132,7 @@ Clips must not overlap. Write the title and the post in this language, whatever 
     return (
       (
         await openai.chat.completions.parse({
-          model: 'gpt-4.1',
+          model: OPENAI_MODEL,
           messages: [
             {
               role: 'system',
@@ -148,7 +166,7 @@ Clips must not overlap. Write the title and the post in this language, whatever 
           ],
           n: 5,
           temperature: 1,
-          model: 'gpt-4.1',
+          model: OPENAI_MODEL,
         }),
         openai.chat.completions.create({
           messages: [
@@ -164,7 +182,7 @@ Clips must not overlap. Write the title and the post in this language, whatever 
           ],
           n: 5,
           temperature: 1,
-          model: 'gpt-4.1',
+          model: OPENAI_MODEL,
         }),
       ])
     ).flatMap((p) => p.choices);
@@ -202,7 +220,7 @@ Clips must not overlap. Write the title and the post in this language, whatever 
           content,
         },
       ],
-      model: 'gpt-4.1',
+      model: OPENAI_MODEL,
     });
 
     const { content: articleContent } = websiteContent.choices[0].message;
@@ -222,7 +240,7 @@ Clips must not overlap. Write the title and the post in this language, whatever 
     const posts =
       (
         await openai.chat.completions.parse({
-          model: 'gpt-4.1',
+          model: OPENAI_MODEL,
           messages: [
             {
               role: 'system',
@@ -255,7 +273,7 @@ Clips must not overlap. Write the title and the post in this language, whatever 
               return (
                 (
                   await openai.chat.completions.parse({
-                    model: 'gpt-4.1',
+                    model: OPENAI_MODEL,
                     messages: [
                       {
                         role: 'system',
@@ -291,7 +309,7 @@ Clips must not overlap. Write the title and the post in this language, whatever 
         const parse =
           (
             await openai.chat.completions.parse({
-              model: 'gpt-4.1',
+              model: OPENAI_MODEL,
               messages: [
                 {
                   role: 'system',

@@ -91,6 +91,11 @@ services:
 
       # === Misc Settings
       OPENAI_API_KEY: ''
+      OPENAI_BASE_URL: ''
+      OPENAI_MODEL: 'gpt-4.1'
+      OPENAI_IMAGE_API_KEY: ''
+      OPENAI_IMAGE_BASE_URL: ''
+      OPENAI_IMAGE_MODEL: 'chatgpt-image-latest'
       # Only this OAuth client can receive verified user email claims via OIDC.
       OPENAI_OAUTH_CLIENT_ID: ''
       NEXT_PUBLIC_DISCORD_SUPPORT: ''

@@ -22,15 +22,26 @@ const tools = !process.env.TAVILY_API_KEY
   : [new TavilySearch({ maxResults: 3 })];
 const toolNode = new ToolNode(tools);
 
+const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL?.trim() || undefined;
+const OPENAI_MODEL = process.env.OPENAI_MODEL?.trim() || 'gpt-4.1';
+const OPENAI_IMAGE_API_KEY =
+  process.env.OPENAI_IMAGE_API_KEY?.trim() ||
+  (!OPENAI_BASE_URL ? process.env.OPENAI_API_KEY : undefined) ||
+  'sk-proj-';
+const OPENAI_IMAGE_MODEL =
+  process.env.OPENAI_IMAGE_MODEL?.trim() || 'chatgpt-image-latest';
+
 const model = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
-  model: 'gpt-4.1',
+  model: OPENAI_MODEL,
   temperature: 0.7,
+  streamUsage: !OPENAI_BASE_URL,
+  ...(OPENAI_BASE_URL ? { configuration: { baseURL: OPENAI_BASE_URL } } : {}),
 });
 
 const dalle = new DallEAPIWrapper({
-  apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
-  model: 'chatgpt-image-latest',
+  apiKey: OPENAI_IMAGE_API_KEY,
+  model: OPENAI_IMAGE_MODEL,
 });
 
 interface WorkflowChannelsState {
